@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 '''
 	OPT / Belady's algorithm for cache eviction.
@@ -34,6 +34,7 @@
 import numpy as np
 from collections import defaultdict
 from functools import partial
+from tqdm import tqdm
 
 import argparse
 
@@ -50,12 +51,12 @@ def getFurthestAccessBlock():
     maxAccessBlock = -1
     for cached_block in C:
         if len(OPT[cached_block]) is 0:
-            print ( "Not Acccessing block anymore " + str(cached_block))
+            #print ( "Not Acccessing block anymore " + str(cached_block))
             return cached_block            
         if OPT[cached_block][0] > maxAccessPosition:
             maxAccessPosition = OPT[cached_block][0]
             maxAccessBlock = cached_block
-    print ( "chose to evict " + str(maxAccessBlock) + " since its position of access is " + str(maxAccessPosition))
+    #print ( "chose to evict " + str(maxAccessBlock) + " since its position of access is " + str(maxAccessPosition))
     return maxAccessBlock
 
 if __name__ == "__main__":
@@ -85,7 +86,7 @@ if __name__ == "__main__":
         seq_number+=1
     
     print ("created OPT dictionary")    
-    print (OPT)
+#    print (OPT)
     # run algorithm
     
     hit_count = 0
@@ -94,17 +95,18 @@ if __name__ == "__main__":
     C = set()
     
     seq_number = 0
-    for b in block_trace:
+    for b in tqdm(block_trace):
         seq_number+=1
-  #      if(seq_number % (blockTraceLength / 10) == 0):
-  #          print("Completed "+str(( seq_number * 100 / blockTraceLength)) + " %")
+        if(seq_number % (blockTraceLength / 10) == 0):
+            print("Completed "+str(( seq_number * 100 / blockTraceLength)) + " %")
         if b in C:
-            print ("HIT " + str(b))
+            #print ("HIT " + str(b))
 #            np.delete(OPT[b],[0])
-            OPT[b] = OPT[b][1:]
+          #  OPT[b] = OPT[b][1:]
+            OPT[b] = np.delete(OPT[b],0)
             hit_count+=1
         else:
-            print ("MISS " + str(b))
+        #    print ("MISS " + str(b))
             miss_count+=1
             if len(C) == cache_size:
                 fblock = getFurthestAccessBlock()
@@ -112,9 +114,10 @@ if __name__ == "__main__":
                 C.remove(fblock)
             C.add(b)
       #      np.delete(OPT[b],[0])
-            OPT[b] = OPT[b][1:]
-            print ("CACHE ")
-            print (C)
+      #      OPT[b] = OPT[b][1:]
+            OPT[b] = np.delete(OPT[b],0)
+       #     print ("CACHE ")
+       #     print (C)
     
     print ("hit count" + str(hit_count))
     print ("miss count" + str(miss_count))

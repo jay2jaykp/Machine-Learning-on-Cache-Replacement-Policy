@@ -50,10 +50,12 @@ def getFurthestAccessBlock():
     maxAccessBlock = -1
     for cached_block in C:
         if len(OPT[cached_block]) is 0:
+            print ( "Not Acccessing block anymore " + str(cached_block))
             return cached_block            
         if OPT[cached_block][0] > maxAccessPosition:
             maxAccessPosition = OPT[cached_block][0]
             maxAccessBlock = cached_block
+    print ( "chose to evict " + str(maxAccessBlock) + " since its position of access is " + str(maxAccessPosition))
     return maxAccessBlock
 
 if __name__ == "__main__":
@@ -79,10 +81,11 @@ if __name__ == "__main__":
     
     seq_number = 0
     for b in block_trace:
-        np.append(OPT[b],seq_number)
+        OPT[b] = np.append(OPT[b],seq_number)
         seq_number+=1
     
     print ("created OPT dictionary")    
+    print (OPT)
     # run algorithm
     
     hit_count = 0
@@ -93,19 +96,25 @@ if __name__ == "__main__":
     seq_number = 0
     for b in block_trace:
         seq_number+=1
-        if(seq_number % (blockTraceLength / 10) == 0):
-            print("Completed "+str(( seq_number * 100 / blockTraceLength)) + " %")
+  #      if(seq_number % (blockTraceLength / 10) == 0):
+  #          print("Completed "+str(( seq_number * 100 / blockTraceLength)) + " %")
         if b in C:
-            np.delete(OPT[b],[0])
+            print ("HIT " + str(b))
+#            np.delete(OPT[b],[0])
+            OPT[b] = OPT[b][1:]
             hit_count+=1
         else:
+            print ("MISS " + str(b))
             miss_count+=1
             if len(C) == cache_size:
                 fblock = getFurthestAccessBlock()
                 assert(fblock != -1)
                 C.remove(fblock)
             C.add(b)
-            np.delete(OPT[b],[0])
+      #      np.delete(OPT[b],[0])
+            OPT[b] = OPT[b][1:]
+            print ("CACHE ")
+            print (C)
     
     print ("hit count" + str(hit_count))
     print ("miss count" + str(miss_count))

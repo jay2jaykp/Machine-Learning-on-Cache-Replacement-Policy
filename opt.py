@@ -33,6 +33,8 @@
 
 import numpy as np
 from collections import defaultdict
+from functools import partial
+
 import argparse
 
 block_trace = []
@@ -73,11 +75,11 @@ if __name__ == "__main__":
     blockTraceLength = len(block_trace)
     # build OPT 
     
-    OPT = defaultdict(list)
+    OPT = defaultdict(partial(np.ndarray,0))
     
     seq_number = 0
     for b in block_trace:
-        OPT[b].append(seq_number)
+        np.append(OPT[b],seq_number)
         seq_number+=1
     
     print ("created OPT dictionary")    
@@ -94,7 +96,7 @@ if __name__ == "__main__":
         if(seq_number % (blockTraceLength / 10) == 0):
             print("Completed "+str(( seq_number * 100 / blockTraceLength)) + " %")
         if b in C:
-            OPT[b].pop(0)
+            np.delete(OPT[b],[0])
             hit_count+=1
         else:
             miss_count+=1
@@ -103,7 +105,7 @@ if __name__ == "__main__":
                 assert(fblock != -1)
                 C.remove(fblock)
             C.add(b)
-            OPT[b].pop(0)
+            np.delete(OPT[b],[0])
     
     print ("hit count" + str(hit_count))
     print ("miss count" + str(miss_count))

@@ -9,7 +9,7 @@ import numpy as np
 from collections import deque, defaultdict
 import timeit
 import pandas as pd
-
+import heapq
 
 # In[459]:
 
@@ -172,10 +172,14 @@ def getFurthestAccessBlock(C, OPT):
     for cached_block in C:
         if len(OPT[cached_block]) is 0:
             return cached_block            
-    for cached_block in C:
-        if OPT[cached_block][0] > maxAccessPosition:
-            maxAccessPosition = OPT[cached_block][0]
-            maxAccessBlock = cached_block
+
+    maxAccessBlock = heapq._heappop_max(H)
+    if len(OPT[maxAccessBlock]) is not 0:
+        heapq.heappush_max(H,OPT[maxAccessBlock][0])
+#    for cached_block in C:
+#        if OPT[cached_block][0] > maxAccessPosition:
+#            maxAccessPosition = OPT[cached_block][0]
+#            maxAccessBlock = cached_block
     return maxAccessBlock
 
 def belady_opt(blocktrace, frame):
@@ -183,6 +187,20 @@ def belady_opt(blocktrace, frame):
 
     for i, block in enumerate(tqdm(blocktrace, desc="OPT: building index")):
         OPT[block].append(i)    
+    # build priority Queue
+#    q = Q.PriorityQueue()
+#    for e in OPT:
+#        if len(OPT[e]) is not 0:
+#            q.put(OPT[e][0])
+#            OPT[e].popleft()
+
+    H = []
+    for e in OPT:
+        if len(OPT[e]) is not 0:
+            H.append(OPT[e][0])
+            #OPT[e].popleft()
+    heapq._heapify_max(H)
+        
 
     #print ("created OPT dictionary")    
 
@@ -207,13 +225,14 @@ def belady_opt(blocktrace, frame):
                 C.remove(fblock)
             C.add(block)
             #OPT[block] = OPT[block][1:]
-            #print(OPT)
-            OPT[block].popleft()
+            #print(OPT) 
+            if len(OPT[block]) is not 0:
+                OPT[block].popleft()
 
     #print ("hit count" + str(hit_count))
     #print ("miss count" + str(miss_count))
     hitrate = hit / (hit + miss)
-    #print(hitrate)
+    print(hitrate)
     return hitrate
 
 
@@ -224,7 +243,4 @@ belady_opt(blocktrace, 500)
 
 
 # In[ ]:
-
-
-
 

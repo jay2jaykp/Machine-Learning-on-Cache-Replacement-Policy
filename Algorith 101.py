@@ -170,15 +170,15 @@ H = []
 #heapq_max.heapify(H) 
 
 def getFurthestAccessBlock(C, OPT):
-    global H
-   # for cached_block in C:
-   #     if len(OPT[cached_block]) is 0:
-   #         return cached_block            
-
-    maxAccessPosition = heapq_max.heappop_max(H)
-    maxAccessBlock = blocktrace[maxAccessPosition]
-    #if len(OPT[maxAccessBlock]) is not 0:
-    #    OPT[maxAccessBlock].popleft()
+    maxAccessPosition = -1
+    maxAccessBlock = -1
+    for cached_block in C:
+        if len(OPT[cached_block]) is 0:
+            return cached_block            
+    for cached_block in C:
+        if OPT[cached_block][0] > maxAccessPosition:
+            maxAccessPosition = OPT[cached_block][0]
+            maxAccessBlock = cached_block
     return maxAccessBlock
 
 def getEvictedBlocks(C, percentage):
@@ -220,12 +220,9 @@ def belady_opt(blocktrace, frame):
                 C.remove(fblock)
             C.add(block)
             #OPT[block] = OPT[block][1:]
-            #print(OPT) 
-            #if len(OPT[block]) is not 0:
-            #    OPT[block].popleft()
-            H.append(OPT[block].popleft())
+            #print(OPT)
+            OPT[block].popleft()
 
-        
     #print ("hit count" + str(hit_count))
     #print ("miss count" + str(miss_count))
     hitrate = hit / (hit + miss)

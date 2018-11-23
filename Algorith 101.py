@@ -4,18 +4,19 @@
 # In[458]:
 
 
-from tqdm import tqdm_notebook as tqdm 
+from tqdm import tqdm as tqdm 
 import numpy as np
 from collections import deque, defaultdict
 import timeit
 import pandas as pd
 import heapq
+import heapq_max
 
 # In[459]:
 
 
-df = pd.read_csv('smalltrace.csv', sep='\t')
-df.columns = ['no','timestamp','pid','pname','blockNo', 'blockSize', 'readOrWrite', 'bdMajor', 'bdMinor', 'hash']
+df = pd.read_csv('cheetah.cs.fiu.edu-110108-113008.1.blkparse', sep=' ',header = None)
+df.columns = ['timestamp','pid','pname','blockNo', 'blockSize', 'readOrWrite', 'bdMajor', 'bdMinor', 'hash']
 df.head()
 
 
@@ -50,7 +51,7 @@ def FIFO(blocktrace, frame):
 # In[462]:
 
 
-FIFO(blocktrace, 50)
+#FIFO(blocktrace, 50)
 
 
 # In[463]:
@@ -81,7 +82,7 @@ def LIFO(blocktrace, frame):
 # In[464]:
 
 
-LIFO(blocktrace, 50)
+#LIFO(blocktrace, 50)
 
 
 # In[465]:
@@ -119,7 +120,7 @@ def LRU(blocktrace, frame):
 # In[466]:
 
 
-LRU(blocktrace, 500)
+#LRU(blocktrace, 500)
 
 
 # In[467]:
@@ -160,47 +161,32 @@ def LFU(blocktrace, frame):
 # In[468]:
 
 
-LFU(blocktrace, 500)
+#LFU(blocktrace, 500)
 
 
 # In[454]:
 
+H = []
+#heapq_max.heapify(H) 
 
 def getFurthestAccessBlock(C, OPT):
-    maxAccessPosition = -1
-    maxAccessBlock = -1
-    for cached_block in C:
-        if len(OPT[cached_block]) is 0:
-            return cached_block            
+    global H
+   # for cached_block in C:
+   #     if len(OPT[cached_block]) is 0:
+   #         return cached_block            
 
-    maxAccessBlock = heapq._heappop_max(H)
-    if len(OPT[maxAccessBlock]) is not 0:
-        heapq.heappush_max(H,OPT[maxAccessBlock][0])
-#    for cached_block in C:
-#        if OPT[cached_block][0] > maxAccessPosition:
-#            maxAccessPosition = OPT[cached_block][0]
-#            maxAccessBlock = cached_block
+    maxAccessPosition = heapq_max.heappop_max(H)
+    maxAccessBlock = blocktrace[maxAccessPosition]
+    #if len(OPT[maxAccessBlock]) is not 0:
+    #    OPT[maxAccessBlock].popleft()
     return maxAccessBlock
 
 def belady_opt(blocktrace, frame):
+    global H
     OPT = defaultdict(deque)
 
     for i, block in enumerate(tqdm(blocktrace, desc="OPT: building index")):
         OPT[block].append(i)    
-    # build priority Queue
-#    q = Q.PriorityQueue()
-#    for e in OPT:
-#        if len(OPT[e]) is not 0:
-#            q.put(OPT[e][0])
-#            OPT[e].popleft()
-
-    H = []
-    for e in OPT:
-        if len(OPT[e]) is not 0:
-            H.append(OPT[e][0])
-            #OPT[e].popleft()
-    heapq._heapify_max(H)
-        
 
     #print ("created OPT dictionary")    
 
@@ -212,10 +198,10 @@ def belady_opt(blocktrace, frame):
 
         if block in C:
             #OPT[block] = OPT[block][1:]
-            OPT[block].popleft()
             hit+=1
             #print('hit' + str(block))
             #print(OPT)
+            OPT[block].popleft()
         else:
             #print('miss' + str(block))
             miss+=1
@@ -226,8 +212,9 @@ def belady_opt(blocktrace, frame):
             C.add(block)
             #OPT[block] = OPT[block][1:]
             #print(OPT) 
-            if len(OPT[block]) is not 0:
-                OPT[block].popleft()
+            #if len(OPT[block]) is not 0:
+            #    OPT[block].popleft()
+            H.append(OPT[block].popleft())
 
     #print ("hit count" + str(hit_count))
     #print ("miss count" + str(miss_count))

@@ -181,6 +181,14 @@ def getFurthestAccessBlock(C, OPT):
     #    OPT[maxAccessBlock].popleft()
     return maxAccessBlock
 
+def getEvictedBlocks(C, percentage):
+    return 0
+
+def Populate(C, C_recency, C_frequency, seqNo):
+    Y = getEvictedBlocks(C, percentage)
+    # X gets populated here.
+    return 0
+
 def belady_opt(blocktrace, frame):
     global H
     OPT = defaultdict(deque)
@@ -192,10 +200,11 @@ def belady_opt(blocktrace, frame):
 
     hit, miss = 0, 0
 
+    blockCount = defaultdict(int)
     C = set()
     seq_number = 0
     for block in tqdm(blocktrace, desc="OPT"):
-
+        blockCount[block] +=1
         if block in C:
             #OPT[block] = OPT[block][1:]
             hit+=1
@@ -216,6 +225,7 @@ def belady_opt(blocktrace, frame):
             #    OPT[block].popleft()
             H.append(OPT[block].popleft())
 
+        
     #print ("hit count" + str(hit_count))
     #print ("miss count" + str(miss_count))
     hitrate = hit / (hit + miss)

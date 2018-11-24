@@ -15,8 +15,8 @@ max_block = -100000000000000
 # In[459]:
 
 
-df = pd.read_csv('cheetah.cs.fiu.edu-110108-113008.1.blkparse', sep=' ',header = None)
-#df = pd.read_csv('sample.blkparse', sep=' ',header = None)
+#df = pd.read_csv('cheetah.cs.fiu.edu-110108-113008.1.blkparse', sep=' ',header = None)
+df = pd.read_csv('sample.blkparse', sep=' ',header = None)
 df.columns = ['timestamp','pid','pname','blockNo', 'blockSize', 'readOrWrite', 'bdMajor', 'bdMinor', 'hash']
 df.head()
 
@@ -160,9 +160,65 @@ def LFU(blocktrace, frame):
 
 
 # In[468]:
+def getFurthestAccessBlock(C, OPT):
+    maxAccessPosition = -1
+    maxAccessBlock = -1
+    for cached_block in C:
+        if len(OPT[cached_block]) is 0:
+            return cached_block            
+    for cached_block in C:
+        if OPT[cached_block][0] > maxAccessPosition:
+            maxAccessPosition = OPT[cached_block][0]
+            maxAccessBlock = cached_block
+    return maxAccessBlock
+
 
 
 #LFU(blocktrace, 500)
+
+def belady_opt_old(blocktrace, frame):
+    global H
+    OPT = defaultdict(deque)
+
+    for i, block in enumerate(tqdm(blocktrace, desc="OPT: building index")):
+        OPT[block].append(i)    
+
+    #print ("created OPT dictionary")    
+
+    hit, miss = 0, 0
+
+    blockCount = defaultdict(int)
+    C = set()
+    seq_number = 0
+    for block in tqdm(blocktrace, desc="OPT"):
+        blockCount[block] +=1
+        print (C)
+        if block in C:
+            #OPT[block] = OPT[block][1:]
+            hit+=1
+            #print('hit' + str(block))
+            #print(OPT)
+            OPT[block].popleft()
+        else:
+            #print('miss' + str(block))
+            miss+=1
+            if len(C) == frame:
+                fblock = getFurthestAccessBlock(C, OPT)
+                assert(fblock != -1)
+                C.remove(fblock)
+            C.add(block)
+            #OPT[block] = OPT[block][1:]
+            #print(OPT)
+            OPT[block].popleft()
+
+    #print ("hit count" + str(hit_count))
+    #print ("miss count" + str(miss_count))
+    hitrate = hit / (hit + miss)
+    print(hitrate)
+    return hitrate
+
+
+
 
 
 # In[454]:
@@ -185,6 +241,7 @@ def belady_opt(blocktrace, frame):
 
         if len(OPT[block]) is not 0 and OPT[block][0] == seq_number:
             OPT[block].popleft()
+        print (C)
         if block in C:
             hit+=1
             if seq_number in D:
@@ -214,7 +271,8 @@ def belady_opt(blocktrace, frame):
 
 # In[455]:
 
-belady_opt(blocktrace, 500)
+belady_opt(blocktrace, 3)
+belady_opt_old(blocktrace, 3)
 
 
 # In[ ]:

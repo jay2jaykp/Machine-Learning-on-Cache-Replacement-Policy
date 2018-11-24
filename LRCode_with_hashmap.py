@@ -12,6 +12,11 @@ import random
 from collections import Counter
 from sklearn.preprocessing import normalize
 
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import confusion_matrix
+
 # dummy maxmimum position variable. assign the position of blocks that 
 # will never get accessed a value greater than this value. this way OPT
 # can be fooled to think that the block will be accessed but at a position
@@ -20,11 +25,11 @@ from sklearn.preprocessing import normalize
 maxpos = 1000000000000
 
 num_params = 3
-sampling_freq = 3 #1000 # number of samples skipped
-eviction = 1 #100       # number of blocks evicted
-cache_size = 3 #500    # default cache size
-#filename = cheetah.cs.fiu.edu-110108-113008.1.blkparse
-filename = "sample.blkparse"
+sampling_freq = 1000 # number of samples skipped
+eviction = 100       # number of blocks evicted
+cache_size = 500    # default cache size
+filename = "cheetah.cs.fiu.edu-110108-113008.1.blkparse"
+#filename = "sample.blkparse"
 
 # In[459]:
 
@@ -245,7 +250,7 @@ def getY(C,OPT):
             Y_current.append(1)
         else:
             Y_current.append(0)
-    print (Y_current)
+    #print (Y_current)
     return Y_current
 
 def getLFURow(LFUDict, C):
@@ -364,6 +369,16 @@ belady_opt(blocktrace, cache_size)
 #print (X)
 #print (Y)
 
+#Train-Test split
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y ,test_size=0.3, random_state=0)
 
+#Fitting Logistic Regression Model
+logreg = LogisticRegression()
+logreg.fit(X_train, Y_train)
 
-# In[ ]:
+Y_pred = logreg.predict(X_test)
+
+print('Accuracy of logistic regression classifier on test set: {:.2f}'.format(logreg.score(X_test, Y_test)))
+
+confusion_matrix = confusion_matrix(Y_test,Y_pred)
+print (confusion_matrix)

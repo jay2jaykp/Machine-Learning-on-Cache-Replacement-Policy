@@ -10,27 +10,30 @@ import timeit
 import pandas as pd
 import random
 
-max_block = -100000000000000
+# dummy maxmimum position variable. assign the position of blocks that 
+# will never get accessed a value greater than this value. this way OPT
+# can be fooled to think that the block will be accessed but at a position
+# far-far-away in time.
+
 maxpos = 1000000000000
 
-# In[459]:
+sampling_freq = 1000 # number of samples skipped
+eviction = 100       # number of blocks evicted
+cache_size = 500    # default cache size
 
+# In[459]:
 
 df = pd.read_csv('cheetah.cs.fiu.edu-110108-113008.1.blkparse', sep=' ',header = None)
 #df = pd.read_csv('sample.blkparse', sep=' ',header = None)
 df.columns = ['timestamp','pid','pname','blockNo', 'blockSize', 'readOrWrite', 'bdMajor', 'bdMinor', 'hash']
 df.head()
 
-
 # In[460]:
-
 
 blocktrace = df['blockNo'].tolist()
 len(blocktrace)
 
-
 # In[461]:
-
 
 def FIFO(blocktrace, frame):
     
@@ -173,8 +176,6 @@ def getFurthestAccessBlock(C, OPT):
             maxAccessBlock = cached_block
     return maxAccessBlock
 
-
-
 #LFU(blocktrace, 500)
 
 def belady_opt_old(blocktrace, frame):
@@ -218,34 +219,43 @@ def belady_opt_old(blocktrace, frame):
     print(hitrate)
     return hitrate
 
-
-
-
-
 # In[454]:
+
+# appends OPT sample to X, Y arrays
+
+def populateData(LFUDict, LRUQ, C, D):
+    return 0
+
+#D - dictionary for faster max() finding among available blocks
+#this dictionary contains next_position -> block_number of blocks in Cache
+#LFUDict - dictionary containing {block -> access_frequencies}
+#LRUQ - deque of all elements in cache based on recency of access
 
 def belady_opt(blocktrace, frame):
     global maxpos
     OPT = defaultdict(deque)
     D = defaultdict(int)
+    LFUDict = defaultdict(int)
+    LRUQ = []
 
     for i, block in enumerate(tqdm(blocktrace, desc="OPT: building index")):
         OPT[block].append(i)
 
     hit, miss = 0, 0
 
-    blockCount = defaultdict(int)
     C = set()
     count=0
     seq_number = 0
     for block in tqdm(blocktrace, desc="OPT"):
-        blockCount[block] +=1
+        LFUDict[block] +=1
 
         if len(OPT[block]) is not 0 and OPT[block][0] == seq_number:
             OPT[block].popleft()
-#        print (C)
+#       print (C)
         if block in C:
             hit+=1
+            LRUQ.remove(block)
+            LRUQ.append(block)
             if seq_number in D:
                 del D[seq_number]
                 if len(OPT[block]) is not 0:
@@ -260,10 +270,8 @@ def belady_opt(blocktrace, frame):
                 if(len(D) != 0):
                     evictpos = max(D)
                     C.remove(D[evictpos])
+                    LRUQ.remove(D[evictpos])
                     del D[evictpos]
-                else:
-                    evictpos = 0
-                    C.remove(random.sample(C,1)[0])
             if len(OPT[block]) is not 0:
                 D[OPT[block][0]] = block
                 OPT[block].popleft()
@@ -271,6 +279,9 @@ def belady_opt(blocktrace, frame):
                 D[maxpos] = block
                 maxpos+=1
             C.add(block)
+            LRUQ.append(block)
+            if (seq_number % sampling_freq +1 == sampling_freq):
+                populateData(LFUDict, LRUQ, C, D)
         seq_number += 1
 
     hitrate = hit / (hit + miss)
@@ -279,8 +290,7 @@ def belady_opt(blocktrace, frame):
 
 # In[455]:
 
-belady_opt(blocktrace, 500)
-belady_opt_old(blocktrace, 500)
-
+belady_opt(blocktrace, cache_size)
+#belady_opt_old(blocktrace, 500)
 
 # In[ ]:

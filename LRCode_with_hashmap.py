@@ -10,6 +10,7 @@ import timeit
 import pandas as pd
 import random
 from collections import Counter
+from sklearn.preprocessing import normalize
 
 # dummy maxmimum position variable. assign the position of blocks that 
 # will never get accessed a value greater than this value. this way OPT
@@ -18,6 +19,7 @@ from collections import Counter
 
 maxpos = 1000000000000
 
+num_params = 3
 sampling_freq = 3 #1000 # number of samples skipped
 eviction = 1 #100       # number of blocks evicted
 cache_size = 3 #500    # default cache size
@@ -223,6 +225,9 @@ def belady_opt_old(blocktrace, frame):
 
 # In[454]:
 
+# return "eviction" blocks that are being accessed furthest
+# from the cache that was sent to us.
+
 def getY(C,OPT):
     global maxpos
     KV = defaultdict(int)
@@ -243,22 +248,50 @@ def getY(C,OPT):
     print (Y_current)
     return Y_current
 
+def getLFURow(LFUDict, C):
+    x_lfurow = []
+    for e in C:
+        x_lfurow.append(LFUDict[e])
+    norm = x_lfurow / np.linalg.norm(x_lfurow)
+    return norm
+    
+def getLRURow(LRUQ, C):
+    x_lrurow = []
+    KV = defaultdict(int)
+    for i in range(len(LRUQ)):
+        KV[LRUQ[i]] = len(C) - i
+    for e in C:
+        x_lrurow.append(KV[e])
+    norm = x_lrurow / np.linalg.norm(x_lrurow)
+    return norm
+
 def getX(LRUQ, LFUDict, C):
-    return 0
+    X_lfurow = getLFURow(LFUDict, C)
+    X_lrurow = getLRURow(LRUQ, C)
+    X_bno    = C / np.linalg.norm(C)
+    #print (X_lfurow)
+    #print (X_lrurow)
+    #print (X_bno)
+    return (np.column_stack((X_lfurow, X_lrurow, X_bno)))
 
 # appends OPT sample to X, Y arrays
 
-X = np.array([[]])
-Y = np.array([])
+X = np.array([], dtype=np.int64).reshape(0,num_params)
+Y = np.array([], dtype=np.int64).reshape(0,1)
 
 # C - cache, LFUDict - dictionary containing block-> access frequency
 # LRUQ - order of element access in Cache.
 
 def populateData(LFUDict, LRUQ, C, OPT):
     global X,Y
+    C = list(C)
     Y_current = getY(C, OPT)
     X_current = getX(LRUQ, LFUDict, C)
-#   print (Y_current)
+
+    Y = np.append(Y, Y_current)
+#    print (np.shape(X_current))
+#    print (np.shape(X))
+    X = np.concatenate((X,X_current))
     return 0
 
 #D - dictionary for faster max() finding among available blocks
@@ -327,5 +360,10 @@ def belady_opt(blocktrace, frame):
 
 belady_opt(blocktrace, cache_size)
 #belady_opt_old(blocktrace, 500)
+
+#print (X)
+#print (Y)
+
+
 
 # In[ ]:

@@ -9,6 +9,7 @@ from collections import deque, defaultdict
 import timeit
 import pandas as pd
 import random
+from collections import Counter
 
 # dummy maxmimum position variable. assign the position of blocks that 
 # will never get accessed a value greater than this value. this way OPT
@@ -17,14 +18,15 @@ import random
 
 maxpos = 1000000000000
 
-sampling_freq = 1000 # number of samples skipped
-eviction = 100       # number of blocks evicted
-cache_size = 500    # default cache size
+sampling_freq = 3 #1000 # number of samples skipped
+eviction = 1 #100       # number of blocks evicted
+cache_size = 3 #500    # default cache size
+#filename = cheetah.cs.fiu.edu-110108-113008.1.blkparse
+filename = "sample.blkparse"
 
 # In[459]:
 
-df = pd.read_csv('cheetah.cs.fiu.edu-110108-113008.1.blkparse', sep=' ',header = None)
-#df = pd.read_csv('sample.blkparse', sep=' ',header = None)
+df = pd.read_csv(filename, sep=' ',header = None)
 df.columns = ['timestamp','pid','pname','blockNo', 'blockSize', 'readOrWrite', 'bdMajor', 'bdMinor', 'hash']
 df.head()
 
@@ -221,9 +223,37 @@ def belady_opt_old(blocktrace, frame):
 
 # In[454]:
 
+def getY(C,OPT):
+    KV = defaultdict(int)
+    Y_current = []
+    for e in C:
+        assert(len(OPT(e))
+        KV[e] = OPT[e][0]
+    KV_sorted = Counter(KV)
+    evict_dict = KV_sorted.most_common(eviction)
+    for e in C:
+        if e in evict_dict:
+            Y_current.append(1)
+        else:
+            Y_current.append(0)
+    return Y_current
+
+def getX(LRUQ, LFUDict, C):
+    return 0
+
 # appends OPT sample to X, Y arrays
 
-def populateData(LFUDict, LRUQ, C, D):
+X = np.array([[]])
+Y = np.array([])
+
+# C - cache, LFUDict - dictionary containing block-> access frequency
+# LRUQ - order of element access in Cache.
+
+def populateData(LFUDict, LRUQ, C, OPT):
+    global X,Y
+    Y_current = getY(C, OPT)
+    X_current = getX(LRUQ, LFUDict, C)
+    print (Y_current)
     return 0
 
 #D - dictionary for faster max() finding among available blocks

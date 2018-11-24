@@ -11,12 +11,13 @@ import pandas as pd
 import random
 
 max_block = -100000000000000
+maxpos = 1000000000000
 
 # In[459]:
 
 
-#df = pd.read_csv('cheetah.cs.fiu.edu-110108-113008.1.blkparse', sep=' ',header = None)
-df = pd.read_csv('sample.blkparse', sep=' ',header = None)
+df = pd.read_csv('cheetah.cs.fiu.edu-110108-113008.1.blkparse', sep=' ',header = None)
+#df = pd.read_csv('sample.blkparse', sep=' ',header = None)
 df.columns = ['timestamp','pid','pname','blockNo', 'blockSize', 'readOrWrite', 'bdMajor', 'bdMinor', 'hash']
 df.head()
 
@@ -192,7 +193,7 @@ def belady_opt_old(blocktrace, frame):
     seq_number = 0
     for block in tqdm(blocktrace, desc="OPT"):
         blockCount[block] +=1
-        print (C)
+#        print (C)
         if block in C:
             #OPT[block] = OPT[block][1:]
             hit+=1
@@ -224,6 +225,7 @@ def belady_opt_old(blocktrace, frame):
 # In[454]:
 
 def belady_opt(blocktrace, frame):
+    global maxpos
     OPT = defaultdict(deque)
     D = defaultdict(int)
 
@@ -241,7 +243,7 @@ def belady_opt(blocktrace, frame):
 
         if len(OPT[block]) is not 0 and OPT[block][0] == seq_number:
             OPT[block].popleft()
-        print (C)
+#        print (C)
         if block in C:
             hit+=1
             if seq_number in D:
@@ -249,6 +251,9 @@ def belady_opt(blocktrace, frame):
                 if len(OPT[block]) is not 0:
                     D[OPT[block][0]] = block
                     OPT[block].popleft()
+                else:
+                    D[maxpos] = block
+                    maxpos+=1
         else:
             miss+=1
             if len(C) == frame:
@@ -262,6 +267,9 @@ def belady_opt(blocktrace, frame):
             if len(OPT[block]) is not 0:
                 D[OPT[block][0]] = block
                 OPT[block].popleft()
+            else:
+                D[maxpos] = block
+                maxpos+=1
             C.add(block)
         seq_number += 1
 
@@ -271,8 +279,8 @@ def belady_opt(blocktrace, frame):
 
 # In[455]:
 
-belady_opt(blocktrace, 3)
-belady_opt_old(blocktrace, 3)
+belady_opt(blocktrace, 500)
+belady_opt_old(blocktrace, 500)
 
 
 # In[ ]:

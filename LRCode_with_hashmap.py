@@ -224,18 +224,23 @@ def belady_opt_old(blocktrace, frame):
 # In[454]:
 
 def getY(C,OPT):
+    global maxpos
     KV = defaultdict(int)
     Y_current = []
     for e in C:
-        assert(len(OPT(e))
-        KV[e] = OPT[e][0]
+        if len(OPT[e]) is not 0:
+            KV[e] = OPT[e][0]
+        else:
+            KV[e] = maxpos
+            maxpos+=1
     KV_sorted = Counter(KV)
-    evict_dict = KV_sorted.most_common(eviction)
+    evict_dict = dict(KV_sorted.most_common(eviction))
     for e in C:
         if e in evict_dict:
             Y_current.append(1)
         else:
             Y_current.append(0)
+    print (Y_current)
     return Y_current
 
 def getX(LRUQ, LFUDict, C):
@@ -253,7 +258,7 @@ def populateData(LFUDict, LRUQ, C, OPT):
     global X,Y
     Y_current = getY(C, OPT)
     X_current = getX(LRUQ, LFUDict, C)
-    print (Y_current)
+#   print (Y_current)
     return 0
 
 #D - dictionary for faster max() finding among available blocks
@@ -311,7 +316,7 @@ def belady_opt(blocktrace, frame):
             C.add(block)
             LRUQ.append(block)
             if (seq_number % sampling_freq +1 == sampling_freq):
-                populateData(LFUDict, LRUQ, C, D)
+                populateData(LFUDict, LRUQ, C, OPT)
         seq_number += 1
 
     hitrate = hit / (hit + miss)

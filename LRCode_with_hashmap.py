@@ -31,8 +31,6 @@ cache_size = 500    # default cache size
 filename = "cheetah.cs.fiu.edu-110108-113008.1.blkparse"
 #filename = "sample.blkparse"
 
-# In[459]:
-
 df = pd.read_csv(filename, sep=' ',header = None)
 df.columns = ['timestamp','pid','pname','blockNo', 'blockSize', 'readOrWrite', 'bdMajor', 'bdMinor', 'hash']
 df.head()
@@ -41,8 +39,6 @@ df.head()
 
 blocktrace = df['blockNo'].tolist()
 len(blocktrace)
-
-# In[461]:
 
 def FIFO(blocktrace, frame):
     
@@ -171,64 +167,62 @@ def LFU(blocktrace, frame):
     hitrate = hit / ( hit + miss )
     return hitrate
 
+'''
+    given C, use LFUDict to find eviction number of blocks from the Cache
+    compare it with Y_OPT and store number of places the two differ
+'''
+lruCorrect = 0
+lruIncorrect = 0
 
-# In[468]:
-def getFurthestAccessBlock(C, OPT):
-    maxAccessPosition = -1
-    maxAccessBlock = -1
-    for cached_block in C:
-        if len(OPT[cached_block]) is 0:
-            return cached_block            
-    for cached_block in C:
-        if OPT[cached_block][0] > maxAccessPosition:
-            maxAccessPosition = OPT[cached_block][0]
-            maxAccessBlock = cached_block
-    return maxAccessBlock
-
-#LFU(blocktrace, 500)
-
-def belady_opt_old(blocktrace, frame):
-    global H
-    OPT = defaultdict(deque)
-
-    for i, block in enumerate(tqdm(blocktrace, desc="OPT: building index")):
-        OPT[block].append(i)    
-
-    #print ("created OPT dictionary")    
-
-    hit, miss = 0, 0
-
-    blockCount = defaultdict(int)
-    C = set()
-    seq_number = 0
-    for block in tqdm(blocktrace, desc="OPT"):
-        blockCount[block] +=1
-#        print (C)
-        if block in C:
-            #OPT[block] = OPT[block][1:]
-            hit+=1
-            #print('hit' + str(block))
-            #print(OPT)
-            OPT[block].popleft()
+def lruPredict(C,LRUQ,Y_OPT):
+    global lruCorrect, lruIncorrect
+    Y_current = []
+    KV = defaultdict(int)
+    for i in range(len(LRUQ)):
+        KV[LRUQ[i]] = len(LRUQ) - i
+    KV_sorted = Counter(KV)
+    evict_dict = dict(KV_sorted.most_common(eviction))
+    for e in C:
+        if e in evict_dict:
+            Y_current.append(1)
         else:
-            #print('miss' + str(block))
-            miss+=1
-            if len(C) == frame:
-                fblock = getFurthestAccessBlock(C, OPT)
-                assert(fblock != -1)
-                C.remove(fblock)
-            C.add(block)
-            #OPT[block] = OPT[block][1:]
-            #print(OPT)
-            OPT[block].popleft()
+            Y_current.append(0)
+    for i in range(len(Y_current)):
+        if Y_current[i] is Y_OPT[i]:
+            lruCorrect+=1
+        else:
+            lruIncorrect+=1
+    return Y_current
 
-    #print ("hit count" + str(hit_count))
-    #print ("miss count" + str(miss_count))
-    hitrate = hit / (hit + miss)
-    print(hitrate)
-    return hitrate
+'''
+    given C, use LFUDict to find eviction number of blocks from the Cache
+    compare it with Y_OPT and store number of places the two differ
 
-# In[454]:
+    The number of correct and incorrect predictions with respect to OPT.
+'''
+
+lfuCorrect = 0
+lfuIncorrect = 0
+
+def lfuPredict(C,LFUDict,Y_OPT):
+    global lfuCorrect, lfuIncorrect
+    Y_current = []
+    KV = defaultdict()
+    for e in C:
+        KV[e] = LFUDict[e]
+    KV_sorted = Counter(KV)
+    evict_dict = dict(KV_sorted.most_common(eviction))
+    for e in C:
+        if e in evict_dict:
+            Y_current.append(1)
+        else:
+            Y_current.append(0)
+    for i in range(len(Y_current)):
+        if Y_current[i] is Y_OPT[i]:
+            lfuCorrect+=1
+        else:
+            lfuIncorrect+=1
+    return Y_current
 
 # return "eviction" blocks that are being accessed furthest
 # from the cache that was sent to us.
@@ -243,6 +237,7 @@ def getY(C,OPT):
         else:
             KV[e] = maxpos
             maxpos+=1
+    # extract "eviction" blocks from KV_sorted hashmap
     KV_sorted = Counter(KV)
     evict_dict = dict(KV_sorted.most_common(eviction))
     for e in C:
@@ -250,7 +245,6 @@ def getY(C,OPT):
             Y_current.append(1)
         else:
             Y_current.append(0)
-    #print (Y_current)
     return Y_current
 
 def getLFURow(LFUDict, C):
@@ -274,9 +268,6 @@ def getX(LRUQ, LFUDict, C):
     X_lfurow = getLFURow(LFUDict, C)
     X_lrurow = getLRURow(LRUQ, C)
     X_bno    = C / np.linalg.norm(C)
-    #print (X_lfurow)
-    #print (X_lrurow)
-    #print (X_bno)
     return (np.column_stack((X_lfurow, X_lrurow, X_bno)))
 
 # appends OPT sample to X, Y arrays
@@ -294,10 +285,8 @@ def populateData(LFUDict, LRUQ, C, OPT):
     X_current = getX(LRUQ, LFUDict, C)
 
     Y = np.append(Y, Y_current)
-#    print (np.shape(X_current))
-#    print (np.shape(X))
     X = np.concatenate((X,X_current))
-    return 0
+    return Y_current
 
 #D - dictionary for faster max() finding among available blocks
 #this dictionary contains next_position -> block_number of blocks in Cache
@@ -324,7 +313,6 @@ def belady_opt(blocktrace, frame):
 
         if len(OPT[block]) is not 0 and OPT[block][0] == seq_number:
             OPT[block].popleft()
-#       print (C)
         if block in C:
             hit+=1
             LRUQ.remove(block)
@@ -354,20 +342,16 @@ def belady_opt(blocktrace, frame):
             C.add(block)
             LRUQ.append(block)
             if (seq_number % sampling_freq +1 == sampling_freq):
-                populateData(LFUDict, LRUQ, C, OPT)
+                Y_OPT = populateData(LFUDict, LRUQ, C, OPT)
+                lruPredict(C,LRUQ,Y_OPT)
+                lfuPredict(C,LFUDict,Y_OPT)
         seq_number += 1
 
     hitrate = hit / (hit + miss)
     print(hitrate)
     return hitrate
 
-# In[455]:
-
 belady_opt(blocktrace, cache_size)
-#belady_opt_old(blocktrace, 500)
-
-#print (X)
-#print (Y)
 
 #Train-Test split
 X_train, X_test, Y_train, Y_test = train_test_split(X, Y ,test_size=0.3, random_state=0)
@@ -382,3 +366,11 @@ print('Accuracy of logistic regression classifier on test set: {:.2f}'.format(lo
 
 confusion_matrix = confusion_matrix(Y_test,Y_pred)
 print (confusion_matrix)
+
+print ("LFU Correct / Incorrect Ratio")
+total = lfuCorrect + lfuIncorrect
+print ( (total - (lfuIncorrect/2) ) / total )
+
+print ("LRU Correct / Incorrect Ratio")
+total = lruCorrect + lruIncorrect
+print ( (total - (lruIncorrect/2) ) / total )

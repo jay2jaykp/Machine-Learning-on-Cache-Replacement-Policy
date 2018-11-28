@@ -26,8 +26,8 @@ maxpos = 1000000000000
 
 num_params = 3
 sampling_freq = 1000 # number of samples skipped
-eviction = 100       # number of blocks evicted
-cache_size = 500    # default cache size
+eviction = 2       # number of blocks evicted
+cache_size = 10    # default cache size
 filename = "cheetah.cs.fiu.edu-110108-113008.1.blkparse"
 #filename = "sample.blkparse"
 
@@ -39,92 +39,6 @@ df.head()
 
 blocktrace = df['blockNo'].tolist()
 len(blocktrace)
-
-def FIFO(blocktrace, frame):
-    
-    cache = deque(maxlen=frame)
-    hit, miss = 0, 0
-    
-    for block in tqdm(blocktrace, leave=False):
-        
-        if block in cache:
-            hit += 1
-
-        else:
-            cache.append(block)
-            miss += 1
-    
-    hitrate = hit / (hit+miss)
-    return hitrate 
-
-
-# In[462]:
-
-
-#FIFO(blocktrace, 50)
-
-
-# In[463]:
-
-
-def LIFO(blocktrace, frame):
-    
-    cache = deque(maxlen=frame)
-    hit, miss = 0, 0
-    
-    for block in tqdm(blocktrace, leave=False):
-        if block in cache:
-            hit += 1
-            
-        elif len(cache) < frame:
-            cache.append(block)
-            miss += 1
-        
-        else:
-            cache.pop()
-            cache.append(block)
-            miss += 1
-            
-    hitrate = hit / (hit + miss)
-    return hitrate
-
-
-# In[464]:
-
-
-#LIFO(blocktrace, 50)
-
-
-# In[465]:
-
-
-def LRU(blocktrace, frame):
-    
-    cache = set()
-    recency = deque()
-    hit, miss = 0, 0
-    
-    for block in tqdm(blocktrace, leave=False):
-        
-        if block in cache:
-            recency.remove(block)
-            recency.append(block)
-            hit += 1
-            
-        elif len(cache) < frame:
-            cache.add(block)
-            recency.append(block)
-            miss += 1
-            
-        else:
-            cache.remove(recency[0])
-            recency.popleft()
-            cache.add(block)
-            recency.append(block)
-            miss += 1
-    
-    hitrate = hit / (hit + miss)
-    return hitrate
 
 
 # In[466]:
@@ -324,7 +238,7 @@ def belady_opt(blocktrace, frame):
                     OPT[block].popleft()
                 else:
                     D[maxpos] = block
-                    maxpos+=1
+                    maxpos -= 1
         else:
             miss+=1
             if len(C) == frame:
@@ -338,7 +252,7 @@ def belady_opt(blocktrace, frame):
                 OPT[block].popleft()
             else:
                 D[maxpos] = block
-                maxpos+=1
+                maxpos -= 1
             C.add(block)
             LRUQ.append(block)
             if (seq_number % sampling_freq +1 == sampling_freq):
@@ -354,7 +268,7 @@ def belady_opt(blocktrace, frame):
 belady_opt(blocktrace, cache_size)
 
 #Train-Test split
-X_train, X_test, Y_train, Y_test = train_test_split(X, Y ,test_size=0.3, random_state=0)
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y ,test_size=0.3, random_state=0, shuffle=False)
 
 #Fitting Logistic Regression Model
 logreg = LogisticRegression()
@@ -374,3 +288,13 @@ print ( (total - (lfuIncorrect/2) ) / total )
 print ("LRU Correct / Incorrect Ratio")
 total = lruCorrect + lruIncorrect
 print ( (total - (lruIncorrect/2) ) / total )
+
+
+c=0
+for i in range(int(len(X_test)/cache_size)):
+    Y_pred = logreg.predict_proba(X_test[i:i+cache_size])
+    c+=1   
+    
+print(Y_pred)
+print(Y_test[c:c+cache_size])
+

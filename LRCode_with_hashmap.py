@@ -317,11 +317,11 @@ Y_pred = logreg.predict(X_test)
 
 print ("LFU Correct / Incorrect Ratio")
 total = lfuCorrect + lfuIncorrect
-print ( (total - (lfuIncorrect/2) ) / total )
+print ( lfuCorrect / total )
 
 print ("LRU Correct / Incorrect Ratio")
 total = lruCorrect + lruIncorrect
-print ( (total - (lruIncorrect/2) ) / total )
+print ( lruCorrect / total )
 
 c=0
 

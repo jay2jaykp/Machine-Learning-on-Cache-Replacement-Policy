@@ -26,10 +26,10 @@ maxpos = 1000000000000
 
 num_params = 3
 sampling_freq = 1000 # number of samples skipped
-eviction = 2       # number of blocks evicted
-cache_size = 10    # default cache size
+cache_size = 1000    # default cache size
+eviction = int(0.1 * cache_size)  # number of blocks evicted
 filename = "cheetah.cs.fiu.edu-110108-113008.1.blkparse"
-#filename = "sample.blkparse"
+#filename = "cheetah.1000"
 
 df = pd.read_csv(filename, sep=' ',header = None)
 df.columns = ['timestamp','pid','pname','blockNo', 'blockSize', 'readOrWrite', 'bdMajor', 'bdMinor', 'hash']
@@ -107,6 +107,19 @@ def lruPredict(C,LRUQ,Y_OPT):
         else:
             lruIncorrect+=1
     return Y_current
+
+
+def Y_getMinPredict(Y_pred_prob):
+    x = []
+    for i in range(len(Y_pred_prob)):
+        x.append(Y_pred_prob[i][0])
+    x = np.array(x)
+    idx = np.argpartition(x, eviction)
+    
+    Y_pred = np.zeros(len(Y_pred_prob), dtype=int)
+    for i in range(eviction):
+        Y_pred[idx[i]] = 1
+    return Y_pred
 
 '''
     given C, use LFUDict to find eviction number of blocks from the Cache
@@ -267,19 +280,40 @@ def belady_opt(blocktrace, frame):
 
 belady_opt(blocktrace, cache_size)
 
+print ("size of X " + str(len(X)))
+
+# round off so that train, test splits are cache size aligned
+X = X[0:len(X)-(len(X)%(cache_size * 10))]
+Y = Y[0:len(Y)-(len(Y)%(cache_size * 10))]
+
+print ("size of X " + str(len(X)))
+print ("size of Y " + str(len(Y)))
+
 #Train-Test split
-X_train, X_test, Y_train, Y_test = train_test_split(X, Y ,test_size=0.3, random_state=0, shuffle=False)
+#X_train, X_test, Y_train, Y_test = train_test_split(X, Y ,test_size=0.3, random_state=0, shuffle=False)
+
+
+X_train = X[0:int(len(X) * 0.7)]
+Y_train = Y[0:int(len(Y) * 0.7)]
+
+X_test = X[int(-len(X) * 0.3):]
+Y_test = Y[int(-len(Y) * 0.3):]
+
+print ("size of X_train " + str(len(X_train)))
+print ("size of X_test " + str(len(X_test)))
 
 #Fitting Logistic Regression Model
-logreg = LogisticRegression()
+#logreg = LogisticRegression(solver='lbfgs')
+#‘newton-cg’, ‘lbfgs’, ‘liblinear’, ‘sag’, ‘saga’
+logreg = LogisticRegression(solver='saga')
 logreg.fit(X_train, Y_train)
 
 Y_pred = logreg.predict(X_test)
 
-print('Accuracy of logistic regression classifier on test set: {:.2f}'.format(logreg.score(X_test, Y_test)))
+#print('Accuracy of logistic regression classifier on test set: {:.2f}'.format(logreg.score(X_test, Y_test)))
 
-confusion_matrix = confusion_matrix(Y_test,Y_pred)
-print (confusion_matrix)
+#confusion_matrix = confusion_matrix(Y_test,Y_pred)
+#print (confusion_matrix)
 
 print ("LFU Correct / Incorrect Ratio")
 total = lfuCorrect + lfuIncorrect
@@ -289,12 +323,24 @@ print ("LRU Correct / Incorrect Ratio")
 total = lruCorrect + lruIncorrect
 print ( (total - (lruIncorrect/2) ) / total )
 
-
 c=0
+
+logRegIncorrect = 0
+logRegCorrect = 0
+
 for i in range(int(len(X_test)/cache_size)):
-    Y_pred = logreg.predict_proba(X_test[i:i+cache_size])
-    c+=1   
-    
-print(Y_pred)
-print(Y_test[c:c+cache_size])
+    Y_pred_prob = logreg.predict_proba(X_test[i:i+cache_size])
+    Y_pred_current = Y_getMinPredict(Y_pred_prob)
+    Y_test_current = Y_test[i:i+cache_size]
+    for j in range(len(Y_test_current)):
+        if np.equal(Y_test_current[j], Y_pred_current[j]):
+            logRegCorrect +=1
+        else:
+            logRegIncorrect +=1
+    assert(Counter(Y_test_current)[1] == eviction)
+
+print ("logRegCorrect = " + str(logRegCorrect))
+print ("logRegInorrect = " + str(logRegIncorrect))
+
+print ("correct = " + str(logRegCorrect / ( logRegCorrect + logRegIncorrect))) 
 

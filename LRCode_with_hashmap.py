@@ -154,21 +154,23 @@ def lfuPredict(C,LFUDict,Y_OPT):
 # return "eviction" blocks that are being accessed furthest
 # from the cache that was sent to us.
 
-def getY(C,OPT):
+#def getY(C,OPT):
+def getY(C,D):
     global maxpos
-    KV = defaultdict(int)
+    #KV = defaultdict(int)
     Y_current = []
-    for e in C:
-        if len(OPT[e]) is not 0:
-            KV[e] = OPT[e][0]
-        else:
-            KV[e] = maxpos
-            maxpos+=1
+#    for e in C:
+#        if len(OPT[e]) is not 0:
+#            KV[e] = OPT[e][0]
+#        else:
+#            KV[e] = maxpos
+#            maxpos+=1
     # extract "eviction" blocks from KV_sorted hashmap
-    KV_sorted = Counter(KV)
+#    KV_sorted = Counter(KV)
+    KV_sorted = Counter(D)
     evict_dict = dict(KV_sorted.most_common(eviction))
     for e in C:
-        if e in evict_dict:
+        if e in evict_dict.values():
             Y_current.append(1)
         else:
             Y_current.append(0)
@@ -205,10 +207,10 @@ Y = np.array([], dtype=np.int64).reshape(0,1)
 # C - cache, LFUDict - dictionary containing block-> access frequency
 # LRUQ - order of element access in Cache.
 
-def populateData(LFUDict, LRUQ, C, OPT):
+def populateData(LFUDict, LRUQ, C, D):
     global X,Y
     C = list(C)
-    Y_current = getY(C, OPT)
+    Y_current = getY(C, D)
     X_current = getX(LRUQ, LFUDict, C)
 
     Y = np.append(Y, Y_current)
@@ -269,7 +271,7 @@ def belady_opt(blocktrace, frame):
             C.add(block)
             LRUQ.append(block)
             if (seq_number % sampling_freq +1 == sampling_freq):
-                Y_OPT = populateData(LFUDict, LRUQ, C, OPT)
+                Y_OPT = populateData(LFUDict, LRUQ, C, D)
                 lruPredict(C,LRUQ,Y_OPT)
                 lfuPredict(C,LFUDict,Y_OPT)
         seq_number += 1
@@ -337,7 +339,7 @@ for i in range(int(len(X_test)/cache_size)):
             logRegCorrect +=1
         else:
             logRegIncorrect +=1
-    assert(Counter(Y_test_current)[1] == eviction)
+#    assert(Counter(Y_test_current)[1] == eviction)
 
 print ("logRegCorrect = " + str(logRegCorrect))
 print ("logRegInorrect = " + str(logRegIncorrect))

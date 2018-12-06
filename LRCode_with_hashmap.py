@@ -119,6 +119,7 @@ def Y_getMinPredict(Y_pred_prob):
     Y_pred = np.zeros(len(Y_pred_prob), dtype=int)
     for i in range(eviction):
         Y_pred[idx[i]] = 1
+    assert(Counter(Y_pred)[1] == eviction)
     return Y_pred
 
 '''
@@ -154,26 +155,21 @@ def lfuPredict(C,LFUDict,Y_OPT):
 # return "eviction" blocks that are being accessed furthest
 # from the cache that was sent to us.
 
-#def getY(C,OPT):
 def getY(C,D):
-    global maxpos
-    #KV = defaultdict(int)
+    assert(len(C) == len(D))
     Y_current = []
-#    for e in C:
-#        if len(OPT[e]) is not 0:
-#            KV[e] = OPT[e][0]
-#        else:
-#            KV[e] = maxpos
-#            maxpos+=1
-    # extract "eviction" blocks from KV_sorted hashmap
-#    KV_sorted = Counter(KV)
     KV_sorted = Counter(D)
     evict_dict = dict(KV_sorted.most_common(eviction))
+    assert(len(evict_dict) == eviction)
+    all_vals = evict_dict.values()
     for e in C:
         if e in evict_dict.values():
             Y_current.append(1)
         else:
             Y_current.append(0)
+    #print (Y_current.count(1))
+    assert(Y_current.count(1) == eviction)
+    assert((set(all_vals)).issubset(set(C)))
     return Y_current
 
 def getLFURow(LFUDict, C):
@@ -215,6 +211,7 @@ def populateData(LFUDict, LRUQ, C, D):
 
     Y = np.append(Y, Y_current)
     X = np.concatenate((X,X_current))
+    assert(Y_current.count(1) == eviction)
     return Y_current
 
 #D - dictionary for faster max() finding among available blocks
@@ -238,6 +235,7 @@ def belady_opt(blocktrace, frame):
     count=0
     seq_number = 0
     for block in tqdm(blocktrace, desc="OPT"):
+#    for block in blocktrace: 
         LFUDict[block] +=1
 
         if len(OPT[block]) is not 0 and OPT[block][0] == seq_number:
@@ -246,22 +244,22 @@ def belady_opt(blocktrace, frame):
             hit+=1
             LRUQ.remove(block)
             LRUQ.append(block)
-            if seq_number in D:
-                del D[seq_number]
-                if len(OPT[block]) is not 0:
-                    D[OPT[block][0]] = block
-                    OPT[block].popleft()
-                else:
-                    D[maxpos] = block
-                    maxpos -= 1
+            assert( seq_number in D)
+            del D[seq_number]
+            if len(OPT[block]) is not 0:
+                D[OPT[block][0]] = block
+                OPT[block].popleft()
+            else:
+                D[maxpos] = block
+                maxpos -= 1
         else:
             miss+=1
             if len(C) == frame:
-                if(len(D) != 0):
-                    evictpos = max(D)
-                    C.remove(D[evictpos])
-                    LRUQ.remove(D[evictpos])
-                    del D[evictpos]
+                assert(len(D) == frame)
+                evictpos = max(D)
+                C.remove(D[evictpos])
+                LRUQ.remove(D[evictpos])
+                del D[evictpos]
             if len(OPT[block]) is not 0:
                 D[OPT[block][0]] = block
                 OPT[block].popleft()
@@ -270,7 +268,7 @@ def belady_opt(blocktrace, frame):
                 maxpos -= 1
             C.add(block)
             LRUQ.append(block)
-            if (seq_number % sampling_freq +1 == sampling_freq):
+            if (seq_number % sampling_freq +1 == sampling_freq and len(C) == frame):
                 Y_OPT = populateData(LFUDict, LRUQ, C, D)
                 lruPredict(C,LRUQ,Y_OPT)
                 lfuPredict(C,LFUDict,Y_OPT)
@@ -288,18 +286,23 @@ print ("size of X " + str(len(X)))
 X = X[0:len(X)-(len(X)%(cache_size * 10))]
 Y = Y[0:len(Y)-(len(Y)%(cache_size * 10))]
 
+print ("Test Y")
+
+for i in range(int(len(X) / 1000)):
+    y = Y[i*1000:(i+1) *1000]
+    assert(Counter(y)[1] == eviction)
+
 print ("size of X " + str(len(X)))
 print ("size of Y " + str(len(Y)))
 
 #Train-Test split
-#X_train, X_test, Y_train, Y_test = train_test_split(X, Y ,test_size=0.3, random_state=0, shuffle=False)
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y ,test_size=0.3, random_state=0, shuffle=False)
 
+print ("Test Y_test")
 
-X_train = X[0:int(len(X) * 0.7)]
-Y_train = Y[0:int(len(Y) * 0.7)]
-
-X_test = X[int(-len(X) * 0.3):]
-Y_test = Y[int(-len(Y) * 0.3):]
+for i in range(int(len(X_test) / cache_size)):
+    y = Y_test[i*cache_size:(i+1) *cache_size]
+    assert(Counter(y)[1] == eviction)
 
 print ("size of X_train " + str(len(X_train)))
 print ("size of X_test " + str(len(X_test)))
@@ -331,18 +334,16 @@ logRegIncorrect = 0
 logRegCorrect = 0
 
 for i in range(int(len(X_test)/cache_size)):
-    Y_pred_prob = logreg.predict_proba(X_test[i:i+cache_size])
+    Y_pred_prob = logreg.predict_proba(X_test[i*cache_size:(i+1)*cache_size])
     Y_pred_current = Y_getMinPredict(Y_pred_prob)
-    Y_test_current = Y_test[i:i+cache_size]
+    Y_test_current = Y_test[i*cache_size:(i+1)*cache_size]
+    assert(Counter(Y_test_current)[1] == eviction)
     for j in range(len(Y_test_current)):
         if np.equal(Y_test_current[j], Y_pred_current[j]):
             logRegCorrect +=1
         else:
             logRegIncorrect +=1
-#    assert(Counter(Y_test_current)[1] == eviction)
 
 print ("logRegCorrect = " + str(logRegCorrect))
 print ("logRegInorrect = " + str(logRegIncorrect))
-
 print ("correct = " + str(logRegCorrect / ( logRegCorrect + logRegIncorrect))) 
-

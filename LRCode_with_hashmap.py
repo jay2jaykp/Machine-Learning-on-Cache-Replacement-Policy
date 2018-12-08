@@ -24,7 +24,7 @@ from sklearn.metrics import confusion_matrix
 
 maxpos = 1000000000000
 
-num_params = 3
+num_params = 4
 sampling_freq = 1000 # number of samples skipped
 cache_size = 1000    # default cache size
 eviction = int(0.1 * cache_size)  # number of blocks evicted
@@ -38,8 +38,8 @@ df.head()
 # In[460]:
 
 blocktrace = df['blockNo'].tolist()
-len(blocktrace)
 
+timestamp = df['timestamp'].tolist()
 
 # In[466]:
 
@@ -189,11 +189,24 @@ def getLRURow(LRUQ, C):
     norm = x_lrurow / np.linalg.norm(x_lrurow)
     return norm
 
-def getX(LRUQ, LFUDict, C):
+def getNormalizedTS(CacheTS, C):
+    x_ts = []
+    for i in range(len(C)):
+        x_ts.append(CacheTS[C[i]])
+    norm = x_ts / np.linalg.norm(x_ts)
+    return norm
+
+def getX(LRUQ, LFUDict, C, CacheTS):
+#def getX(LRUQ, LFUDict, C, CacheTS, CachePID):
     X_lfurow = getLFURow(LFUDict, C)
     X_lrurow = getLRURow(LRUQ, C)
     X_bno    = C / np.linalg.norm(C)
-    return (np.column_stack((X_lfurow, X_lrurow, X_bno)))
+    X_ts     = getNormalizedTS(CacheTS, C)
+#   X_pid     = getNormalizedPID(CachePID, C)
+    return (np.column_stack((X_lfurow, X_lrurow, X_bno, X_ts)))
+    #return (np.column_stack((X_lfurow, X_lrurow, X_ts)))
+    #return (np.column_stack((X_lfurow, X_lrurow)))
+    #return (np.column_stack((X_lrurow, X_ts)))
 
 # appends OPT sample to X, Y arrays
 
@@ -203,11 +216,13 @@ Y = np.array([], dtype=np.int64).reshape(0,1)
 # C - cache, LFUDict - dictionary containing block-> access frequency
 # LRUQ - order of element access in Cache.
 
-def populateData(LFUDict, LRUQ, C, D):
+#def populateData(LFUDict, LRUQ, C, D, CacheTS, CachePID):
+def populateData(LFUDict, LRUQ, C, D, CacheTS):
     global X,Y
     C = list(C)
     Y_current = getY(C, D)
-    X_current = getX(LRUQ, LFUDict, C)
+    #X_current = getX(LRUQ, LFUDict, C, CacheTS,CachePID)
+    X_current = getX(LRUQ, LFUDict, C, CacheTS)
 
     Y = np.append(Y, Y_current)
     X = np.concatenate((X,X_current))
@@ -225,6 +240,7 @@ def belady_opt(blocktrace, frame):
     D = defaultdict(int)
     LFUDict = defaultdict(int)
     LRUQ = []
+    CacheTS = defaultdict(int)
 
     for i, block in enumerate(tqdm(blocktrace, desc="OPT: building index")):
         OPT[block].append(i)
@@ -240,6 +256,7 @@ def belady_opt(blocktrace, frame):
 
         if len(OPT[block]) is not 0 and OPT[block][0] == seq_number:
             OPT[block].popleft()
+        CacheTS [blocktrace[seq_number]] = timestamp[seq_number]
         if block in C:
             hit+=1
             LRUQ.remove(block)
@@ -259,6 +276,7 @@ def belady_opt(blocktrace, frame):
                 evictpos = max(D)
                 C.remove(D[evictpos])
                 LRUQ.remove(D[evictpos])
+                del CacheTS [D[evictpos]]
                 del D[evictpos]
             if len(OPT[block]) is not 0:
                 D[OPT[block][0]] = block
@@ -269,7 +287,7 @@ def belady_opt(blocktrace, frame):
             C.add(block)
             LRUQ.append(block)
             if (seq_number % sampling_freq +1 == sampling_freq and len(C) == frame):
-                Y_OPT = populateData(LFUDict, LRUQ, C, D)
+                Y_OPT = populateData(LFUDict, LRUQ, C, D, CacheTS)
                 lruPredict(C,LRUQ,Y_OPT)
                 lfuPredict(C,LFUDict,Y_OPT)
         seq_number += 1
@@ -319,6 +337,8 @@ Y_pred = logreg.predict(X_test)
 
 #confusion_matrix = confusion_matrix(Y_test,Y_pred)
 #print (confusion_matrix)
+
+print (logreg.coef_)
 
 print ("LFU Correct / Incorrect Ratio")
 total = lfuCorrect + lfuIncorrect

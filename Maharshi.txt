@@ -1,0 +1,25 @@
+
+ 100
+ 10
+ 1000
+Run Default Algorithms
+========================
+Cache Size = 100
+LRU Hitrate on TrainingData = 0.04044318412160397
+LFU Hitrate on TrainingData = 0.039680275506387176
+LRU Hitrate on TestData = 0.043341402298058454
+LFU Hitrate on TestData = 0.042877281670167015
+Run Default Algorithms
+========================
+Cache Size = 10
+LRU Hitrate on TrainingData = 0.03485289538739951
+LFU Hitrate on TrainingData = 0.03278300319515523
+LRU Hitrate on TestData = 0.04010452107747091
+LFU Hitrate on TestData = 0.03899261981645963
+Run Default Algorithms
+========================
+Cache Size = 1000
+LRU Hitrate on TrainingData = 0.04326236006829148
+LFU Hitrate on TrainingData = 0.048818879208922195
+LRU Hitrate on TestData = 0.04510361162345419
+LFU Hitrate on TestData = 0.04809078263509815

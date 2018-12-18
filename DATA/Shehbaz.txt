@@ -1,0 +1,127 @@
+Shehbazbhai Approach (Default Eviction is 20%)
+
+Cache 10
+=============
+Hitrate:
+LRU:
+LFU:
+OPT:
+
+ML Accuracy:
+LR:
+KNN:
+NN:
+
+ML Hitrate:
+LR:
+KNN:
+NN:
+
+Cache 100
+=============
+Hitrate:
+LRU:
+LFU:
+OPT:
+
+ML Accuracy:
+LR:
+KNN:
+NN:
+
+ML Hitrate:
+LR:
+KNN:
+NN:
+
+Cache 1000
+=============
+Hitrate:
+LRU:
+LFU:
+OPT:
+
+ML Accuracy:
+LR:
+KNN:
+NN:
+
+ML Hitrate:
+LR:
+KNN:
+NN:
+
+
+
+Train/Test Split Cache 100:
+============================
+
+30/70:
+LR:
+Hitrate:
+Accuracy:
+KNN:
+Hitrate:
+Accuracy:
+NN:
+Hitrate:
+Accuracy:
+
+50/50:
+LR:
+Hitrate:
+Accuracy:
+KNN:
+Hitrate:
+Accuracy:
+NN:
+Hitrate:
+Accuracy:
+
+70/30:
+LR:
+Hitrate:
+Accuracy:
+KNN:
+Hitrate:
+Accuracy:
+NN:
+Hitrate:
+Accuracy:
+
+
+Eviction Approximation Cache 100:
+=============================
+
+5%
+LR Hitrate:
+KNN Hitrate:
+NN Hitrate:
+
+10%
+LR Hitrate:
+KNN Hitrate:
+NN Hitrate:
+
+20%
+LR Hitrate:
+KNN Hitrate:
+NN Hitrate:
+
+50%
+LR Hitrate:
+KNN Hitrate:
+NN Hitrate:
+
+70%
+LR Hitrate:
+KNN Hitrate:
+NN Hitrate:
+
+90%
+LR Hitrate:
+KNN Hitrate:
+NN Hitrate:
+
+
+

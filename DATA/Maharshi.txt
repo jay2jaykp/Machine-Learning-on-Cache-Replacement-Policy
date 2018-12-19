@@ -1,5 +1,8 @@
 Maharshi Approach (Default Eviction is 20%)
 
+trainData - 11687258
+testData - 10344955
+
 Cache 10
 =============
 Hitrate:
@@ -20,26 +23,26 @@ NN:
 Cache 100
 =============
 Hitrate:
-LRU:
-LFU:
-OPT:
+LRU: 0.050023707208006224
+LFU: 0.04888237793204514
+OPT: 0.05530570215143517
 
 ML Accuracy:
-LR:
-KNN:
-NN:
+LR: 0.029234386180108353
+KNN: 0.019114790963916998
+NN: 0.03516303792292753 (max iteration reached 200)
 
 ML Hitrate:
-LR:
-KNN:
-NN:
+LR: 0.04917392100787292
+KNN: (takes too much time)
+NN: 0.04945193091705087
 
 Cache 1000
 =============
 Hitrate:
-LRU:
-LFU:
-OPT:
+LRU: 0.05175343923680673
+LFU: 
+OPT: 0.07515847096483262
 
 ML Accuracy:
 LR:
@@ -58,70 +61,94 @@ Train/Test Split Cache 100:
 
 30/70:
 LR:
-Hitrate:
-Accuracy:
-KNN:
-Hitrate:
-Accuracy:
+Hitrate: 0.04882515197021157
+Accuracy: 0.3777193750912542
+KNN: 
+Hitrate: 0.04789397343922714
+Accuracy: 0.5389107898963352
 NN:
-Hitrate:
-Accuracy:
+Hitrate: 0.049088758723455056
+Accuracy: 0.5628558913710031
 
 50/50:
 LR:
-Hitrate:
-Accuracy:
+Hitrate: 0.04898735663905739
+Accuracy: 0.4681112019623876
 KNN:
-Hitrate:
-Accuracy:
+Hitrate: Too Slow
+Accuracy: 0.6584219133278822
 NN:
-Hitrate:
-Accuracy:
+Hitrate: 0.04919596073641693
+Accuracy: 0.6621013900245298 (max iter reached)
 
 70/30:
 LR:
-Hitrate:
-Accuracy:
+Hitrate: 0.049037332690185696
+Accuracy: 0.4909710391822828
 KNN:
-Hitrate:
-Accuracy:
+Hitrate: Too Slow
+Accuracy: 0.6974446337308348
 NN:
-Hitrate:
-Accuracy:
+Hitrate: 0.04905202584254837
+Accuracy: 0.6729131175468483
 
 
 Eviction Approximation Cache 100:
 =============================
 
 5%
-LR Hitrate:
-KNN Hitrate:
-NN Hitrate:
+LR Hitrate: 0.04638405870301031
+KNN Hitrate: Too Slow
+NN Hitrate: 0.04678773373107954
+
+LR Accuracy: 0.029234386180108353
+KNN Accuracy: 0.019114790963916998
+NN Accuracy: 0.04078503526525606
 
 10%
 LR Hitrate:
-KNN Hitrate:
+KNN Hitrate: Too slow
 NN Hitrate:
+
+LR Accuracy: 
+KNN Accuracy: Too slow
+NN Accuracy: 
 
 20%
 LR Hitrate:
-KNN Hitrate:
+KNN Hitrate: Too slow
 NN Hitrate:
+
+LR Accuracy: 
+KNN Accuracy: Too slow
+NN Accuracy: 
 
 50%
 LR Hitrate:
-KNN Hitrate:
+KNN Hitrate: Too slow
 NN Hitrate:
+
+LR Accuracy: 
+KNN Accuracy: Too slow
+NN Accuracy: 
 
 70%
 LR Hitrate:
-KNN Hitrate:
+KNN Hitrate: Too slow
 NN Hitrate:
+
+LR Accuracy: 
+KNN Accuracy: Too slow
+NN Accuracy: 
 
 90%
 LR Hitrate:
-KNN Hitrate:
+KNN Hitrate: Too slow
 NN Hitrate:
+
+LR Accuracy: 
+KNN Accuracy: Too slow
+NN Accuracy: 
 
 
 

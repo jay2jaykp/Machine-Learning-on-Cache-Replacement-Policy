@@ -106,45 +106,45 @@ KNN Accuracy: 0.019114790963916998
 NN Accuracy: 0.04078503526525606
 
 10%
-LR Hitrate:
+LR Hitrate: 0.04782872424287974
 KNN Hitrate: Too slow
-NN Hitrate:
+NN Hitrate: 0.048516112443215076
 
 LR Accuracy: 
 KNN Accuracy: Too slow
 NN Accuracy: 
 
 20%
-LR Hitrate:
+LR Hitrate:  0.04917392100787292
 KNN Hitrate: Too slow
-NN Hitrate:
+NN Hitrate: 0.04925956661967113
 
-LR Accuracy: 
+LR Accuracy: 0.029234386180108353
 KNN Accuracy: Too slow
-NN Accuracy: 
+NN Accuracy: 0.032505366452008584
 
 50%
-LR Hitrate:
+LR Hitrate: 0.049474260642023093
 KNN Hitrate: Too slow
-NN Hitrate:
+NN Hitrate: 0.04954521310145863
 
 LR Accuracy: 
 KNN Accuracy: Too slow
 NN Accuracy: 
 
 70%
-LR Hitrate:
+LR Hitrate:0.049681994750098
 KNN Hitrate: Too slow
-NN Hitrate:
+NN Hitrate:0.049703937813165934
 
 LR Accuracy: 
 KNN Accuracy: Too slow
 NN Accuracy: 
 
 90%
-LR Hitrate:
+LR Hitrate: 0.04976039045119094
 KNN Hitrate: Too slow
-NN Hitrate:
+NN Hitrate: 0.04967165154415848
 
 LR Accuracy: 
 KNN Accuracy: Too slow

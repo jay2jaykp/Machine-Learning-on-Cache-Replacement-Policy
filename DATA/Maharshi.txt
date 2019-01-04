@@ -150,5 +150,34 @@ LR Accuracy:
 KNN Accuracy: Too slow
 NN Accuracy: 
 
+Eviction Approximation Cache 1000:
+=============================
 
+LR Accuracy: 0.0027165395465468603
+NN Accuracy: 0.0008358583220144186
+
+5%
+LR Hitrate: 0.05094396254019471
+NN Hitrate: 0.05135807743967954
+
+
+10%
+LR Hitrate: 
+NN Hitrate: 
+
+20%
+LR Hitrate:  
+NN Hitrate: 
+
+50%
+LR Hitrate: 
+NN Hitrate: 
+
+70%
+LR Hitrate:
+NN Hitrate:
+
+90%
+LR Hitrate: 
+NN Hitrate: 
 

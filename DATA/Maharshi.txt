@@ -166,8 +166,8 @@ LR Hitrate:
 NN Hitrate: 
 
 20%
-LR Hitrate:  
-NN Hitrate: 
+LR Hitrate: 0.052120478049445355 
+NN Hitrate: 0.05223241667073467
 
 50%
 LR Hitrate: 
@@ -178,6 +178,6 @@ LR Hitrate:
 NN Hitrate:
 
 90%
-LR Hitrate: 
-NN Hitrate: 
+LR Hitrate: 0.05163531402504892
+NN Hitrate: 0.05165058717026802
 

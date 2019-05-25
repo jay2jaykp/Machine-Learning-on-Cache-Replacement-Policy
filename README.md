@@ -18,6 +18,6 @@ This repo is used very roughly throughout the course, please see the following n
 
 ### Contributors:
 
-[1] Shehbaz Jaffer <http://www.cs.toronto.edu/~shehbaz/>
-[2] Maharshi Trivedi <https://nonlinear.mie.utoronto.ca/maharshi/>
-[3] Jay Patel
+#### [1] Shehbaz Jaffer <http://www.cs.toronto.edu/~shehbaz/>
+#### [2] Maharshi Trivedi <https://nonlinear.mie.utoronto.ca/maharshi/>
+#### [3] Jay Patel

@@ -16,4 +16,8 @@ This repo is used very roughly throughout the course, please see the following n
 
 [3] [Project Report](https://www.overleaf.com/read/jsjcnwrvxdpr)
 
+### Contributors:
 
+[1] Shehbaz Jaffer <http://www.cs.toronto.edu/~shehbaz/>
+[2] Maharshi Trivedi <https://nonlinear.mie.utoronto.ca/maharshi/>
+[3] Jay Patel
